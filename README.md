@@ -13,20 +13,21 @@ This difference appears related to the hwo the phase is retained in the DICOM of
 This version of NIFTI_NORDIC has been made possible through the testing and evaulation of many people, including
 
 
-Logan Dowdle
-Luca Vizioli
-Cheryl Olman
-Essa Yacoub
-Henry Braun
-Remi Patriat
-Federico De Martino
-Lonike Faes
-Torben Ellegaard Lund
-Lasse Knudsen
-Stamatios Sotiropoulos
-Karen Mullinger
-Daniel Marsh
-Susan Francis
+Logan Dowdle,
+Luca Vizioli,
+Cheryl Olman,
+Essa Yacoub,
+Henry Braun,
+Remi Patriat,
+Mehmet Akcakaya,
+Federico De Martino,
+Lonike Faes,
+Torben Ellegaard Lund,
+Lasse Knudsen,
+Stamatios Sotiropoulos,
+Karen Mullinger,
+Daniel Marsh,
+Susan Francis,
 Jose Manzano Patron
 
 
