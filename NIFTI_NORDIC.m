@@ -187,19 +187,24 @@ if ~exist('info_phase')
     info_phase.Datatype=class(I_P);
     info.Datatype=class(I_M);
 end
-
+		% Here, we combine magnitude and phase data into complex form 
+		fprintf('Phase should be -pi to pi...\')
         if strmatch(info_phase.Datatype,'uint16')
-            II=single(I_M)  .* exp(1i*single(I_P)/phase_range*2*pi);
+			I_P = single(I_P)/phase_range*2*pi;
+            II=single(I_M)  .* exp(1i*I_P);
         elseif strmatch(info_phase.Datatype,'int16')
-            II=single(I_M)  .* exp(1i*(single(I_P)+1-(phase_range+1)/2)/(phase_range+1)*2*pi);
+			I_P = (single(I_P)+1-(phase_range+1)/2)/(phase_range+1)*2*pi;
+            II=single(I_M)  .* exp(1i*I_P);
         elseif strmatch(info_phase.Datatype,'single')
               phase_range_min=min(I_P(:));
               range_norm=phase_range-phase_range_min;
               range_center=(phase_range+phase_range_min)/range_norm*1/2;
-              II=single(I_M)  .* exp(1i*(single(I_P)./range_norm -range_center)*2*pi);                 
+			  I_P = (single(I_P)./range_norm -range_center)*2*pi;
+              II=single(I_M)  .* exp(1i*I_P);                 
               
         end
-  
+		
+		fprintf('Phase data range is %.2f to %.2f\n', min(I_P(:)), max(I_P(:)))
 else
     
      try
