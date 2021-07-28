@@ -1,6 +1,8 @@
 # NORDIC_Raw
 Matlab code for performing image reconstruction in MRI and performing the NORDIC denoising
 
+
+# Overview
 The two files NORDIC and NIFTI_NORDIC perform similar concepts, locally low-rank denoising.
 Both approaches, uses a g-factor map to flatten the noise, and a noise-scan for estimating the homoegenous noise.
 For NORDIC, the noise-scan and the g-factor are explicit constructions provided as the last elements in a 4D array.
@@ -35,3 +37,17 @@ Any questions, ciomments or suggestions can be directed to
 
 Steen Moeller
 moell018@umn.edu
+
+# System Requirements
+# Hardware Requirements
+Package only requires a standard computer with enough RAM to support the in-memory operations and loading the data
+# Software Requirements
+ This package is tested on Matlab version 2017b. All neccesary dependencies are part of the default matlab installation
+# Installation Guide
+ Ensure that NORDIC.m is in a path that is visible to matlab
+# Demo for the installation
+
+ 
+
+
+
