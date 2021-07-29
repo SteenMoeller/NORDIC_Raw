@@ -17,10 +17,10 @@ patch_avg_sub=2;              %  use for master_fast==1;  Reduces the number of 
 patch_avg=0;                  %  For subfunction use, of where patch averagign shoudl be performed.  
 file_idx=1; 
 DUAL=1;                       %  Paramter to remove some final volumes from the end of [vol_1 ...   Vol_N] leaving [ noise_volume gfactor_map ]
-
+restart_list=0;
 DIR=[pwd '/'];
                 
-NVR_LLR_3D_MP_2(DIR,file_filter,file_idx,NORDIC_threshold,DUAL,kernel_size,patch_avg,['kernel_' num2str(ker)],reset, master_fast,soft_thrs, patch_avg_sub);
+NVR_LLR_3D_MP_2(DIR,file_filter,file_idx,NORDIC_threshold,DUAL,kernel_size,patch_avg,['kernel_' num2str(ker)],restart_list, master_fast,soft_thrs, patch_avg_sub);
 
 
 return
@@ -699,8 +699,8 @@ KSP=newname.KSP;clear newname
     % KSP_NOISE=KSP_NOISE/Q1;
     end
     
-    if ARG.DUAL<3  % noise was not acquried
-        estimate_noise_from_data=1;
+    if ARG.DUAL<3  % noise might not be acquired correctly
+        estimate_noise_from_data=0;
         
         if estimate_noise_from_data==1
             Q=sq((KSP2(end-3,2,:,:)));  Q1a=mean(abs(Q(:)));  % take image noise from the bottom of the volume, where the signal is lowest - JIC
