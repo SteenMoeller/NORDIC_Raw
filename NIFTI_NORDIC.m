@@ -549,6 +549,12 @@ else
 end
 
 
+if matdim(3) <= ARG.kernel_size(3)  % Number of slices is less than cubic kernel    
+    ARG.kernel_size   = repmat([ round((size(KSP2,4)*11/matdim(3) )^(1/2))   ],1,2);
+    ARG.kernel_size(3)= matdim(3);    
+end
+
+
 QQ.KSP_processed=zeros(1,size(KSP2,1)-ARG.kernel_size(1));
 ARG.patch_average=0;
 ARG.patch_average_sub= ARG.NORDIC_patch_overlap ;
