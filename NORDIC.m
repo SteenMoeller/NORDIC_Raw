@@ -1070,7 +1070,146 @@ end
 return
 
 
+function [KSP2_tmp_update, KSP2_weight,NOISE,KSP2_tmp_update_threshold,energy_removed,SNR_weight]=subfunction_loop_for_NVR_avg_update(KSP2a,w3,w2,w1,lambda2,patch_avg, soft_thrs,KSP2_weight,ARG,NOISE,KSP2_tmp_update_threshold,energy_removed,SNR_weight)
+  
+  if ~isfield(ARG,'patch_scale'); patch_scale=1; else; patch_scale=ARG.patch_scale;end
+  if ~exist('patch_avg'); patch_avg=1;end    %   patch_avg=0; means zero only
+  if ~exist('soft_thrs'); soft_thrs=[]; end             
+  
+  if ~exist('KSP2_weight')
+         KSP2_weight=zeros(size(KSP2a(:,:,:,1)));
+  elseif isempty(KSP2_weight)
+         KSP2_weight=zeros(size(KSP2a(:,:,:,1)));
+  end
+  
+  if ~exist('NOISE_tmpKSP2_tmp_update')
+        NOISE_tmp=zeros(size(KSP2a(:,:,:,1)));
+  elseif isempty(KSP2_tmp_update)
+        NOISE_tmp=zeros(size(KSP2a(:,:,:,1)));
+  end
+  
+  if ~exist('KSP2_tmp_update_threshold')
+         KSP2_tmp_update_threshold=zeros(size(KSP2a(:,:,:,1)));
+  elseif isempty(KSP2_tmp_update_threshold)
+         KSP2_tmp_update_threshold=zeros(size(KSP2a(:,:,:,1)));
+  end
+  
+ if ~exist('energy_removed')
+         energy_removed=zeros(size(KSP2a(:,:,:,1)));
+  elseif isempty(energy_removed)
+         energy_removed=zeros(size(KSP2a(:,:,:,1)));
+ end
+   
+  
+ if ~exist('SNR_weight')
+         SNR_weight=zeros(size(KSP2a(:,:,:,1)));
+  elseif isempty(SNR_weight)
+        SNR_weight=zeros(size(KSP2a(:,:,:,1)));
+  end
+   
+ 
+ 
+  KSP2_tmp_update=0*KSP2a;
+  %NOISE=[];
+  
+          
+                for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP2a,2)-w2+1];
+                     for n3=[1: max(1,floor(w3/ARG.patch_average_sub)):size(KSP2a,3)*1-w3+1  size(KSP2a,3)-w3+1  ];
+                  
+                    KSP2_tmp=KSP2a(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:);
+                        tmp1=reshape(KSP2_tmp,[],size(KSP2_tmp,4));
+                        
+                        [U,S,V]=svd([(tmp1) ],'econ'); S=diag(S);
+                        
+                        
+                        
+                        
+                        [idx]=sum(S<lambda2);
+                        if isempty(soft_thrs)
+                            energy_scrub=sqrt(sum(S.^1)).\sqrt(sum(S(S<lambda2).^1));
+                            S(S<lambda2)=0;
+                            t=idx;
+                          
+                            
+                        elseif soft_thrs==10  % USING MPPCA
+                            
+                            centering=0;
+                            MM=size(tmp1,1);
+                            NNN=size(tmp1,2);
+                            R = min(MM, NNN);
+                            scaling = (max(MM, NNN) - (0:R-centering-1)) / NNN;
+                            scaling = scaling(:);
+                            vals=S;
+                            vals = (vals).^2 / NNN;
+                            % First estimation of Sigma^2;  Eq 1 from ISMRM presentation
+                            csum = cumsum(vals(R-centering:-1:1)); cmean = csum(R-centering:-1:1)./(R-centering:-1:1)'; sigmasq_1 = cmean./scaling;
+                            % Second estimation of Sigma^2; Eq 2 from ISMRM presentation
+                            gamma = (MM - (0:R-centering-1)) / NNN;
+                            rangeMP = 4*sqrt(gamma(:));
+                            rangeData = vals(1:R-centering) - vals(R-centering);
+                            sigmasq_2 = rangeData./rangeMP;
+                            t = find(sigmasq_2 < sigmasq_1, 1);
+                             % NOISE(1:size(KSP2a,1),[1:w2]+(n2-1),[1:w3]+(n3-1),1) = sigmasq_2(t);
+                            idx=size(S(t:end),1)  ;
+                              energy_scrub=sqrt(sum(S.^1)).\sqrt(sum(S(t:end).^1)); 
+                            S(t:end)=0;
+                            
+                            
+                        else
+                            S(max(1,end-floor(idx*soft_thrs)):end)=0;
+                        end
+                        
+                        tmp1=U*diag(S)*V';
+                        
+                        tmp1=reshape(tmp1,size(KSP2_tmp));
+                        
+                        if patch_scale==1; else; patch_scale=size(S,1)-idx; end
+                        
+                        
+                        if patch_avg==1
+                            
+                            KSP2_tmp_update(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) =...
+                                KSP2_tmp_update(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) +patch_scale*tmp1;
+                            KSP2_weight(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) =...
+                                KSP2_weight(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) + patch_scale;
+                            KSP2_tmp_update_threshold(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) =...
+                                KSP2_tmp_update_threshold(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) +idx;
+                            energy_removed(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) =...
+                                energy_removed(:,[1:w2]+(n2-1),[1:w3]+(n3-1),:) +energy_scrub;
+                            
+                            SNR_weight(:,[1:w2]+(n2-1),[1:w3]+(n3-1),1) =...
+                                SNR_weight(:,[1:w2]+(n2-1),[1:w3]+(n3-1),1) + S(1)./S(max(1,t-1));
+                            
+                            try
+                                NOISE(1:size(KSP2a,1),[1:w2]+(n2-1),[1:w3]+(n3-1),1) = ...
+                                    NOISE(1:size(KSP2a,1),[1:w2]+(n2-1),[1:w3]+(n3-1),1) +   sigmasq_2(t);; catch; end
+                        else
+                            KSP2_tmp_update(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) =...
+                                KSP2_tmp_update(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) +patch_scale*tmp1(1,round(end/2),round(end/2),:);
+                            KSP2_weight(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) =...
+                                KSP2_weight(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) +patch_scale;
+                            KSP2_tmp_update_threshold(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) =...
+                                KSP2_tmp_update_threshold(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) +idx;
+                            energy_removed(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:)  =...
+                                energy_removed(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) +energy_scrub;
+                            
+                            SNR_weight(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),1) =...
+                                SNR_weight(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),1) + S(1)./S(max(1,t-1));
+                            try
+                                NOISE(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) = ...
+                                    NOISE(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) +   sigmasq_2(t);; catch; end
+                            
+                        end
+                        
+                        
+                     end
+                end
+                
+            
+             
+             return
 
+             
 
 
 
