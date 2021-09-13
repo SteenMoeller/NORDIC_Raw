@@ -54,11 +54,11 @@ Package only requires a standard computer with enough RAM to support the in-memo
     QQ=load('KSP_demo_data_for_NORDICkernel8')
     Q=load('demo_data_for_NORDIC') 
     figure; clf
-    subplot(2,2,1); imagesc(sq(real(Q.KSP(:,:,32,12))),[0 1]); title('Data + noise')
-    subplot(2,2,2); imagesc(sq(real(Q.IMG(:,:,32,12))),[0 1]); title('Data w/o noise')
-    subplot(2,2,3); imagesc(sq(real(QQ.KSP_update(:,:,32,12))),[0 1]); title('NORDIC processed')
-    subplot(2,2,4); plot(sq(real(Q.KSP(20,25,32,1:end-2)  -   Q.IMG(20,25,32,1:end-1)))), hold on
-                    plot(sq(real(QQ.KSP_update(20,25,32,1:end)  -   Q.IMG(20,25,32,1:end-1))))
+    subplot(2,2,1); imagesc(squeeze(real(Q.KSP(:,:,32,12))),[0 1]); title('Data + noise')
+    subplot(2,2,2); imagesc(squeeze(real(Q.IMG(:,:,32,12))),[0 1]); title('Data w/o noise')
+    subplot(2,2,3); imagesc(squeeze(real(QQ.KSP_update(:,:,32,12))),[0 1]); title('NORDIC processed')
+    subplot(2,2,4); plot(squeeze(real(Q.KSP(20,25,32,1:end-2)  -   Q.IMG(20,25,32,1:end-1)))), hold on
+                    plot(squeeze(real(QQ.KSP_update(20,25,32,1:end)  -   Q.IMG(20,25,32,1:end-1))))
                     legend('difference before NORDIC','difference after NORDIC')
 
  
