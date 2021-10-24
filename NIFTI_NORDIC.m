@@ -625,7 +625,7 @@ IMG2=KSP_recon;
 disp('completing NORDIC ...')
 
 
-if isfield('ARG','save_residual_matlab')
+if isfield(ARG,'save_residual_matlab')
 if ARG.save_residual_matlab==1;
 Residual=KSP2-KSP_recon;
   save([ARG.DIROUT 'RESIDUAL'  fn_out '.mat'   ],'Residual','-v7.3')
