@@ -436,8 +436,10 @@ if ( ARG.save_gfactor_map==2 )  | ( ARG.save_gfactor_map==1 )
     else
         g_IMG= single(abs(g_IMG)*2^gain_level);
     end
-     
-    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'])
+    info_g = info; % Copy the header
+    info_g.ImageSize(4) = []; % no 4th dimension on gfactor map
+    info_g.PixelDimensions(4) = []; % again, no 4th dimension
+    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'], info_g) % Add header, so gfactor header matches original input
     if ARG.save_gfactor_map==2
      return
     end
