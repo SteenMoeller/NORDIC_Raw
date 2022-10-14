@@ -6,7 +6,7 @@ function  NORDIC(file_filter,ARG)
 %   KSP should be in image-space and complex valued
 %   An auxilary variable called KSP_processed shoudl exist. It shoudl be
 %   all zeros, and have the length of the third dimension in KSP
-
+%  Copyright  Board of Regents, University of Minnesota
 
 NORDIC_threshold=1.0;         %  scaling the threshold relative to the largest singular value of the noise
 ker=0;                        %  if 0, the scaling is automatic to a 11:1 ratio
