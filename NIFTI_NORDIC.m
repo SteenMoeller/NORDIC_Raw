@@ -60,7 +60,7 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %  4/15/21 swapped the uint16 and in16 for the phase
 %
 %  VERSION 4/22/2021
-
+%  Copyright  Board of Regents, University of Minnesota
 
 
 
