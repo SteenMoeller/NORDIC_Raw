@@ -171,10 +171,21 @@ if ARG.magnitude_only~=1
         I_P=single(niftiread(fn_phase_in));
     else
         try
-        tmp=load_nii(fn_magn_in);
-        I_M=abs(single(tmp.img));
-        tmp=load_nii(fn_phase_in);
-        I_P=single(tmp.img);
+            
+            try
+                tmp=load_nii(fn_magn_in);
+            catch
+                tmp=load_untouch_nii(fn_magn_in);
+            end
+            I_M=abs(single(tmp.img));
+            
+            try
+                tmp=load_nii(fn_phase_in);
+            catch
+                tmp=load_untouch_nii(fn_phase_in);
+            end
+            I_P=single(tmp.img);
+            
         catch
            disp('Missing nfiti tool. Serach mathworks for load_nii  fileexchange 8797') 
         end
@@ -226,7 +237,11 @@ else
     if ARG.use_generic_NII_read~=1
         I_M=abs(single(niftiread(fn_magn_in)));
     else
-        tmp=load_nii(fn_magn_in);
+        try
+            tmp=load_nii(fn_magn_in);
+        catch
+            tmp=load_untouch_nii(fn_magn_in);
+        end
         I_M=abs(single(tmp.img));
     end
     
