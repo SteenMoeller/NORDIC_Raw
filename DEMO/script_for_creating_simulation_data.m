@@ -1,4 +1,4 @@
-function  create_NORDIC_data
+function  script_for_creating_simulation_data
 sim_img_size=64;
 sim_temp_size=48;
 noise_level=0.01;
@@ -13,7 +13,7 @@ for idx_val=1:size(val,1)
     IMG(MASK==1,1:size(temp_basis,2))=  repmat( temp_basis( idx_val,: ) ,[sum(MASK(:)) 1 ]);
 end
 
-IMG =reshape(IMG, [size(Y) sim_temp_size]); 
+IMG =reshape(IMG, [size(Y) sim_temp_size]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  create spatially varying noise
 gfactor_1D= hamming(sim_img_size);
@@ -31,7 +31,7 @@ end
 IID_NOISE=noise_level*complex(randn([sim_img_size sim_img_size sim_img_size sim_temp_size+1 ]),randn([sim_img_size sim_img_size sim_img_size sim_temp_size+1 ])   );
 
 for t= sim_temp_size+1:-1:1
-spatial_noise(:,:,:,t)= IID_NOISE(:,:,:,t).*gfactor;
+    spatial_noise(:,:,:,t)= IID_NOISE(:,:,:,t).*gfactor;
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,7 +50,7 @@ KSP(:,:,:,end+1)=gfactor;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% save output - legacy format 
+% save output - legacy format
 
 KSP_processed=zeros(1,size(KSP,3));  % a counter in case things have to run in parallel
 
@@ -62,16 +62,16 @@ if 0
     NORDIC('demo_data_for_NORDIC.mat')
     
     QQ=load('KSP_demo_data_for_NORDICkernel8')
-    Q=load('demo_data_for_NORDIC') 
+    Q=load('demo_data_for_NORDIC')
     figure; clf
-subplot(2,2,1); imagesc(sq(real(Q.KSP(:,:,32,12))),[0 1]); title('Data + noise')
-subplot(2,2,2); imagesc(sq(real(Q.IMG(:,:,32,12))),[0 1]); title('Data w/o noise')
-subplot(2,2,3); imagesc(sq(real(QQ.KSP_update(:,:,32,12))),[0 1]); title('NORDIC processed')
-subplot(2,2,4); plot(sq(real(Q.KSP(20,25,32,1:end-2)  -   Q.IMG(20,25,32,1:end-1)))), hold on
-                plot(sq(real(QQ.KSP_update(20,25,32,1:end)  -   Q.IMG(20,25,32,1:end-1))))
-                legend('difference before NORDIC','difference after NORDIC')
-
- 
+    subplot(2,2,1); imagesc(sq(real(Q.KSP(:,:,32,12))),[0 1]); title('Data + noise')
+    subplot(2,2,2); imagesc(sq(real(Q.IMG(:,:,32,12))),[0 1]); title('Data w/o noise')
+    subplot(2,2,3); imagesc(sq(real(QQ.KSP_update(:,:,32,12))),[0 1]); title('NORDIC processed')
+    subplot(2,2,4); plot(sq(real(Q.KSP(20,25,32,1:end-2)  -   Q.IMG(20,25,32,1:end-1)))), hold on
+    plot(sq(real(QQ.KSP_update(20,25,32,1:end)  -   Q.IMG(20,25,32,1:end-1))))
+    legend('difference before NORDIC','difference after NORDIC')
+    
+    
 end
 
 
