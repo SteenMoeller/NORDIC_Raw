@@ -52,8 +52,19 @@ NORDIC and NIFTI_NORDIC is copyrighted by Regents of the University of Minnesota
 # System Requirements
 # Hardware Requirements
 Package only requires a standard computer with enough RAM to support the in-memory operations and loading the data
+
 # Software Requirements
- This package is tested on Matlab version 2017b. All neccesary dependencies are part of the default matlab installation
+
+This package is tested on Matlab version 2017b. 
+ 
+If you are using Matlab version >= 2017b, all neccesary dependencies are part of the default matlab installation.
+
+For earlier versions of matlab, you will require the nifti_tools tolbox to load nifti files.
+The nifti_tools tolbox can be downloaded from here:
+
+https://www.mathworks.com/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image
+
+
 # Installation Guide
  Ensure that NORDIC.m is in a path that is visible to matlab
 # Demo for the installation
