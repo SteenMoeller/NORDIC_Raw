@@ -720,9 +720,6 @@ if isfield(ARG,'make_complex_nii')
     if ARG.drop_last_vols>0 % update the header before saving
         info.ImageSize(4) = info.ImageSize(4)-ARG.drop_last_vols;
     end
-    if ARG.drop_last_vols>0 % update the header before saving
-        info.ImageSize(4) = info.ImageSize(4)-ARG.drop_last_vols;
-    end
     niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'magn.nii'],info)
 
 
