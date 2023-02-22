@@ -221,13 +221,13 @@ if ARG.magnitude_only~=1
 
 
     if 0
-        if strmatch(info_phase.Datatype,'uint16')
+        if matches(info_phase.Datatype,'uint16')
             I_P = single(I_P)/phase_range*2*pi;
             II=single(I_M)  .* exp(1i*I_P);
-        elseif strmatch(info_phase.Datatype,'int16')
+        elseif matches(info_phase.Datatype,'int16')
             I_P = (single(I_P)+1-(phase_range+1)/2)/(phase_range+1)*2*pi;
             II=single(I_M)  .* exp(1i*I_P);
-        elseif strmatch(info_phase.Datatype,'single')
+        elseif matches(info_phase.Datatype,'single')
             phase_range_min=min(I_P(:));
             range_norm=phase_range-phase_range_min;
             range_center=(phase_range+phase_range_min)/range_norm*1/2;
