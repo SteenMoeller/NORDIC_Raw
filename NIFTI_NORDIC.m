@@ -64,7 +64,7 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 
 
 
-if ~exist('ARG')  % initialize ARG structure
+if ~exist('ARG', 'var')  % initialize ARG structure
     ARG.DIROUT=[pwd '/'];
 elseif ~isfield(ARG,'DIROUT') % Specify where to save data
     ARG.DIROUT=[pwd '/'];
@@ -126,7 +126,7 @@ if ~isfield(ARG,'kernel_size_PCA')
     ARG.kernel_size_PCA=[]; % default is 11:1 ratio
 end
 
-if ~isfield(ARG,'phase_slice_average_for_kspace_centering');
+if ~isfield(ARG,'phase_slice_average_for_kspace_centering')
     ARG.phase_slice_average_for_kspace_centering=0;
 end
 
@@ -167,7 +167,7 @@ if ARG.magnitude_only~=1
     try
         info_phase=niftiinfo(fn_phase_in);
         info=niftiinfo(fn_magn_in);
-    catch;  
+    catch
         disp('The niftiinfo fails at reading the header') 
     end
 
@@ -221,13 +221,13 @@ if ARG.magnitude_only~=1
 
     % Legacy phase conversion approach, no longer used
     % if 0
-    %     if matches(info_phase.Datatype,'uint16')
+    %     if strmatch(info_phase.Datatype,'uint16')
     %         I_P = single(I_P)/phase_range*2*pi;
     %         II=single(I_M)  .* exp(1i*I_P);
-    %     elseif matches(info_phase.Datatype,'int16')
+    %     elseif strmatch(info_phase.Datatype,'int16')
     %         I_P = (single(I_P)+1-(phase_range+1)/2)/(phase_range+1)*2*pi;
     %         II=single(I_M)  .* exp(1i*I_P);
-    %     elseif matches(info_phase.Datatype,'single')
+    %     elseif strmatch(info_phase.Datatype,'single')
     %         phase_range_min=min(I_P(:));
     %         range_norm=phase_range-phase_range_min;
     %         range_center=(phase_range+phase_range_min)/range_norm*1/2;
@@ -242,26 +242,28 @@ else
 
     try
         info=niftiinfo(fn_magn_in);
-    catch;  disp('The niftiinfo fails at reading the header')  ;end
+    catch
+        disp('The niftiinfo fails at reading the header')
+    end
 
 
     if ARG.use_generic_NII_read~=1
         I_M=abs(single(niftiread(fn_magn_in)));
         if ARG.drop_last_vols>0 % Drop last magnitude vols, if requested
-            drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+            %drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
             I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
         end
     else
         tmp=load_nii(fn_magn_in);
         I_M=abs(single(tmp.img));
         if ARG.drop_last_vols>0
-            drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+            %drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
             I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
         end
     end
 
 
-    if ~exist('info_phase')
+    if ~exist('info_phase', 'var')
         info.Datatype=class(I_M);
     end
 
@@ -303,7 +305,7 @@ meanphase=mean(KSP2(:,:,:,idx(1)),4);
 if 1
     disp('estimating slice-dependent phases ...')
     meanphase=mean(KSP2(:,:,:,[1:end-ARG.noise_volume_last]),4);
-    for nsl=1:size(meanphase,3);
+    for nsl=1:size(meanphase,3)
         %meanphase2(:,:,nsl)=complex(  medfilt2(squeeze(real(meanphase(:,:,nsl))),[7 7]), medfilt2(squeeze(imag(meanphase(:,:,nsl))),[7 7]) );
     end
     meanphase=meanphase*ARG.phase_slice_average_for_kspace_centering;
@@ -314,7 +316,7 @@ end
 
 
 for slice=matdim(3):-1:1
-    for n=1:size(KSP2,4); % include the noise
+    for n=1:size(KSP2,4) % include the noise
         KKSP2(:,:,slice,n)=KSP2(:,:,slice,n).*exp(-i*angle(meanphase(:,:,slice)));
     end
 end
@@ -335,9 +337,9 @@ if           ARG.temporal_phase>0; % Standarad low-pass filtered map
 end
 
 
-if           ARG.temporal_phase==2; % Secondary step for filtered phase with residual spikes
+if  ARG.temporal_phase==2 % Secondary step for filtered phase with residual spikes
     for slice=matdim(3):-1:1
-        for n=1:size(KSP2,4);
+        for n=1:size(KSP2,4)
 
             phase_diff=angle(KSP2(:,:,slice,n)./DD_phase(:,:,slice,n));
             mask=abs(phase_diff)>1;
@@ -357,8 +359,8 @@ end
 
 
 for slice=matdim(3):-1:1
-    for n=1:size(KSP2,4);
-        KSP2(:,:,slice,n)= KSP2(:,:,slice,n).*exp(-i*angle( DD_phase(:,:,slice,n)   ));
+    for n=1:size(KSP2,4)
+        KSP2(:,:,slice,n)= KSP2(:,:,slice,n).*exp(-i*angle( DD_phase(:,:,slice,n) ));
     end
 end
 
@@ -414,7 +416,7 @@ QQ.KSP_processed=zeros(1,size(KSP2,1)-ARG.kernel_size(1));
 
 if ARG.patch_average==0
     KSP_processed=QQ.KSP_processed*0;
-    for nw1=2:max(1,floor(ARG.kernel_size(1)/ARG.patch_average_sub));
+    for nw1=2:max(1,floor(ARG.kernel_size(1)/ARG.patch_average_sub))
         KSP_processed(1,nw1 : max(1,floor(ARG.kernel_size(1)/ARG.patch_average_sub)):end)=2;
     end
     KSP_processed(end)=0; % disp
@@ -440,13 +442,13 @@ ARG2=ARG;
 disp('completed estimating g-factor')
 gfactor=ARG.NOISE;
 
-if size(KSP2,4)<6;  % gfactor stimation most likely failed, replace with median estimated
+if size(KSP2,4)<6  % gfactor stimation most likely failed, replace with median estimated
     gfactor(isnan(gfactor))=0;
     gfactor(gfactor==0)=median(gfactor(gfactor~=0));
 end
 
 
-if sum(gfactor(:)==0)>0;  % gfactor stimation most likely failed since it is zero
+if sum(gfactor(:)==0)>0  % gfactor stimation most likely failed since it is zero
     gfactor(isnan(gfactor))=0;
     gfactor(gfactor<1)=median(gfactor(gfactor~=0));
     ARG.data_has_zero_elements=1;
@@ -454,7 +456,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if ARG.MP==2;
+if ARG.MP==2
     gfactor=ones(size(gfactor));
 end
 
@@ -499,12 +501,12 @@ matdim=size(KSP2);
 
 
 for slice=matdim(3):-1:1
-    for n=1:size(KSP2,4); % include the noise
+    for n=1:size(KSP2,4) % include the noise
         KSP2(:,:,slice,n)=KSP2(:,:,slice,n).*exp(-i*angle(meanphase(:,:,slice)));
     end
 end
 
-for n=1:size(KSP2,4);
+for n=1:size(KSP2,4)
     KSP2(:,:,:,n)= KSP2(:,:,:,n)./ gfactor;
 end
 
@@ -515,9 +517,9 @@ end
 
 
 
-if           ARG.temporal_phase==3; % Secondary step for filtered phase with residual spikes
+if ARG.temporal_phase==3 % Secondary step for filtered phase with residual spikes
     for slice=matdim(3):-1:1
-        for n=1:size(KSP2,4);
+        for n=1:size(KSP2,4)
 
             phase_diff=angle(KSP2(:,:,slice,n)./DD_phase(:,:,slice,n));
             mask  = abs(phase_diff)>1;
@@ -532,7 +534,7 @@ if           ARG.temporal_phase==3; % Secondary step for filtered phase with res
 end
 
 for slice=matdim(3):-1:1
-    for n=1:size(KSP2,4);
+    for n=1:size(KSP2,4)
         KSP2(:,:,slice,n)= KSP2(:,:,slice,n).*exp(-i*angle( DD_phase(:,:,slice,n)   ));
     end
 end
@@ -553,13 +555,13 @@ end
 
 
 if  ~isfield(ARG,'use_magn_for_gfactor') & (isempty(ARG.magnitude_only) | ARG.magnitude_only==0)  %% WOULD THIS BE THE ISSUE  & replaced by |
-    ARG.measured_noise =  ARG.measured_noise/sqrt(2)
+    ARG.measured_noise =  ARG.measured_noise/sqrt(2);
 end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if    ARG.data_has_zero_elements==1
+if ARG.data_has_zero_elements==1
     MASK=(sum(abs(KSP2),4)==0);
     Num_zero_elements=sum(MASK(:));
     for nvol=1:size(KSP2,4)
@@ -647,7 +649,7 @@ QQ.KSP_processed=zeros(1,size(KSP2,1)-ARG.kernel_size(1));
 
 if ARG.patch_average==0
     KSP_processed=QQ.KSP_processed*0;
-    for nw1=2:max(1,floor(ARG.kernel_size(1)/ARG.patch_average_sub));
+    for nw1=2:max(1,floor(ARG.kernel_size(1)/ARG.patch_average_sub))
         KSP_processed(1,nw1 : max(1,floor(ARG.kernel_size(1)/ARG.patch_average_sub)):end)=2;
     end
     KSP_processed(end)=0; % disp
@@ -669,21 +671,21 @@ disp('completing NORDIC ...')
 
 
 if isfield(ARG,'save_residual_matlab')
-    if ARG.save_residual_matlab==1;
+    if ARG.save_residual_matlab==1
         Residual=KSP2-KSP_recon;
         save([ARG.DIROUT 'RESIDUAL'  fn_out '.mat'   ],'Residual','-v7.3')
     end
 end
 
 
-for n=1:size(IMG2,4);
+for n=1:size(IMG2,4)
     IMG2(:,:,:,n)= IMG2(:,:,:,n).* gfactor;
 end
 
 
 
 for slice=matdim(3):-1:1
-    for n=1:size(IMG2,4); % include the noise
+    for n=1:size(IMG2,4) % include the noise
         IMG2(:,:,slice,n)=IMG2(:,:,slice,n).*exp(i*angle(meanphase(:,:,slice)));
     end
 end
@@ -799,10 +801,10 @@ return
 
 function  [KSP_recon,KSP2,KSP2_weight,NOISE, Component_threshold,energy_removed,SNR_weight]=sub_LLR_Processing(KSP_recon,KSP2,ARG,n1,QQ,master,KSP2_weight,NOISE,Component_threshold,energy_removed,SNR_weight)
 
-if ~exist('NOISE'); NOISE=[];  end
-if ~exist('Component_threshold');Component_threshold=[];  end
-if ~exist('energy_removed');  energy_removed=[]; end
-if ~exist('SNR_weight'); SNR_weight=[]; end
+if ~exist('NOISE', 'var'); NOISE=[];  end
+if ~exist('Component_threshold', 'var');Component_threshold=[];  end
+if ~exist('energy_removed', 'var');  energy_removed=[]; end
+if ~exist('SNR_weight', 'var'); SNR_weight=[]; end
 
 %  QQ.KSP_processed  0 nothing done, 1 running, 2 saved 3 completed and  averaged
 
@@ -848,7 +850,7 @@ if     QQ.KSP_processed(1,n1)~=1  && QQ.KSP_processed(1,n1)~=3 % not being proce
 
     if QQ.KSP_processed(1,n1)~=2
         QQ.KSP_processed(1,n1)=1; % block for other processes
-        if ~exist('DATA_full2')
+        if ~exist('DATA_full2', 'var')
             ARG2=QQ.ARG;
             if master==0
                 QQ.KSP_processed(1,n1)=1    ;  % STARTING
@@ -875,7 +877,10 @@ if     QQ.KSP_processed(1,n1)~=1  && QQ.KSP_processed(1,n1)~=3 % not being proce
 
                 KSP2_weight([1:ARG.kernel_size(1)]+(n1-1),:,:,:)=KSP2_weight_tmp;
 
-                try;     NOISE([1:ARG.kernel_size(1)]+(n1-1),:,:,:) =NOISE_tmp;  catch;end
+                try
+                    NOISE([1:ARG.kernel_size(1)]+(n1-1),:,:,:) =NOISE_tmp;  
+                catch
+                end
                 Component_threshold([1:ARG.kernel_size(1)]+(n1-1),:,:,:) = Component_threshold_tmp;
                 energy_removed([1:ARG.kernel_size(1)]+(n1-1),:,:,:)  = energy_removed_tmp;
                 SNR_weight([1:ARG.kernel_size(1)]+(n1-1),:,:,:)  = SNR_weight_tmp;
@@ -915,17 +920,17 @@ return
 
 
 function [KSP2_tmp_update, KSP2_weight]=subfunction_loop_for_NVR_avg(KSP2a,w3,w2,w1,lambda2,patch_avg, soft_thrs,KSP2_weight,ARG)
-if ~exist('patch_avg'); patch_avg=1;end
-if ~exist('soft_thrs'); soft_thrs=[]; end
+if ~exist('patch_avg', 'var'); patch_avg=1;end
+if ~exist('soft_thrs', 'var'); soft_thrs=[]; end
 
-if ~exist('KSP2_weight')
+if ~exist('KSP2_weight', 'var')
     KSP2_weight=zeros(size(KSP2a(:,:,:,1)));
 elseif isempty(KSP2_weight)
     KSP2_weight=zeros(size(KSP2a(:,:,:,1)));
 end
 
 
-if ~exist('KSP2_tmp_update')
+if ~exist('KSP2_tmp_update', 'var')
     KSP2_tmp_update=zeros(size(KSP2a(:,:,:,:)));
 elseif isempty(KSP2_tmp_update)
     KSP2_tmp_update=zeros(size(KSP2a(:,:,:,:)));
@@ -1013,35 +1018,35 @@ return
 function [KSP2_tmp_update, KSP2_weight,NOISE,KSP2_tmp_update_threshold,energy_removed,SNR_weight]=subfunction_loop_for_NVR_avg_update(KSP2a,w3,w2,w1,lambda2,patch_avg, soft_thrs,KSP2_weight,ARG,NOISE,KSP2_tmp_update_threshold,energy_removed,SNR_weight)
 
 if ~isfield(ARG,'patch_scale'); patch_scale=1; else; patch_scale=ARG.patch_scale;end
-if ~exist('patch_avg'); patch_avg=1;end    %   patch_avg=0; means zero only
-if ~exist('soft_thrs'); soft_thrs=[]; end
+if ~exist('patch_avg', 'var'); patch_avg=1;end    %   patch_avg=0; means zero only
+if ~exist('soft_thrs', 'var'); soft_thrs=[]; end
 
-if ~exist('KSP2_weight')
+if ~exist('KSP2_weight', 'var')
     KSP2_weight=zeros(size(KSP2a(:,:,:,1)));
 elseif isempty(KSP2_weight)
     KSP2_weight=zeros(size(KSP2a(:,:,:,1)));
 end
 
-if ~exist('NOISE_tmp')'%  ~exist('NOISE_tmpKSP2_tmp_update')
+if ~exist('NOISE_tmp', 'var') %  ~exist('NOISE_tmpKSP2_tmp_update')
     NOISE_tmp=zeros(size(KSP2a(:,:,:,1)));
 elseif isempty(KSP2_tmp_update)
     NOISE_tmp=zeros(size(KSP2a(:,:,:,1)));
 end
 
-if ~exist('KSP2_tmp_update_threshold')
+if ~exist('KSP2_tmp_update_threshold', 'var')
     KSP2_tmp_update_threshold=zeros(size(KSP2a(:,:,:,1)));
 elseif isempty(KSP2_tmp_update_threshold)
     KSP2_tmp_update_threshold=zeros(size(KSP2a(:,:,:,1)));
 end
 
-if ~exist('energy_removed')
+if ~exist('energy_removed', 'var')
     energy_removed=zeros(size(KSP2a(:,:,:,1)));
 elseif isempty(energy_removed)
     energy_removed=zeros(size(KSP2a(:,:,:,1)));
 end
 
 
-if ~exist('SNR_weight')
+if ~exist('SNR_weight', 'var')
     SNR_weight=zeros(size(KSP2a(:,:,:,1)));
 elseif isempty(SNR_weight)
     SNR_weight=zeros(size(KSP2a(:,:,:,1)));
