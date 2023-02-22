@@ -167,7 +167,9 @@ if ARG.magnitude_only~=1
     try
         info_phase=niftiinfo(fn_phase_in);
         info=niftiinfo(fn_magn_in);
-    catch;  disp('The niftiinfo fails at reading the header')  ;end
+    catch;  
+        disp('The niftiinfo fails at reading the header') 
+    end
 
 
     if ARG.use_generic_NII_read~=1
@@ -175,10 +177,10 @@ if ARG.magnitude_only~=1
         I_P=single(niftiread(fn_phase_in));
         if ARG.drop_last_vols>0 % Remove the volumes from the end, if requested
             fprintf('Dropping the last %d volumes\n', ARG.drop_last_vols)
-            drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+            % drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
             I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
 
-            drop_P = I_P(:,:,:,end-ARG.drop_last_vols:end);
+            % drop_P = I_P(:,:,:,end-ARG.drop_last_vols:end);
             I_P = I_P(:,:,:,1:end-ARG.drop_last_vols);
         end
     else
@@ -189,10 +191,10 @@ if ARG.magnitude_only~=1
             I_P=single(tmp.img);
             if ARG.drop_last_vols>0 % Remove the volumes from the end, if requested
                 fprintf('Dropping the last %d volumes\n', ARG.drop_last_vols)
-                drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+                % drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
                 I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
     
-                drop_P = I_P(:,:,:,end-ARG.drop_last_vols:end);
+                % drop_P = I_P(:,:,:,end-ARG.drop_last_vols:end);
                 I_P = I_P(:,:,:,1:end-ARG.drop_last_vols);
             end
         catch
@@ -203,7 +205,7 @@ if ARG.magnitude_only~=1
 
     phase_range=single(max(I_P(:)));
     phase_range_min=single(min(I_P(:)));
-    if ~exist('info_phase')
+    if ~exist('info_phase', 'var')
         info_phase.Datatype=class(I_P);
         info.Datatype=class(I_M);
     end
