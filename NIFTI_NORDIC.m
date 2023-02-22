@@ -154,6 +154,10 @@ if ~isfield(ARG,'data_has_zero_elements') %
     ARG.data_has_zero_elements=0; %  % If there are pixels that are constant zero
 end
 
+if ~isfield(ARG,'drop_last_vols') %
+    ARG.drop_last_vols=0; % Default to removing no volumes. 
+end
+
 
 ARG;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -169,12 +173,28 @@ if ARG.magnitude_only~=1
     if ARG.use_generic_NII_read~=1
         I_M=abs(single(niftiread(fn_magn_in)));
         I_P=single(niftiread(fn_phase_in));
+        if ARG.drop_last_vols>0 % Remove the volumes from the end, if requested
+            fprintf('Dropping the last %d volumes\n', ARG.drop_last_vols)
+            drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+            I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
+
+            drop_P = I_P(:,:,:,end-ARG.drop_last_vols:end);
+            I_P = I_P(:,:,:,1:end-ARG.drop_last_vols);
+        end
     else
         try
             tmp=load_nii(fn_magn_in);
             I_M=abs(single(tmp.img));
             tmp=load_nii(fn_phase_in);
             I_P=single(tmp.img);
+            if ARG.drop_last_vols>0 % Remove the volumes from the end, if requested
+                fprintf('Dropping the last %d volumes\n', ARG.drop_last_vols)
+                drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+                I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
+    
+                drop_P = I_P(:,:,:,end-ARG.drop_last_vols:end);
+                I_P = I_P(:,:,:,1:end-ARG.drop_last_vols);
+            end
         catch
             disp('Missing nfiti tool. Serach mathworks for load_nii  fileexchange 8797')
         end
@@ -225,9 +245,17 @@ else
 
     if ARG.use_generic_NII_read~=1
         I_M=abs(single(niftiread(fn_magn_in)));
+        if ARG.drop_last_vols>0 % Drop last magnitude vols, if requested
+            drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+            I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
+        end
     else
         tmp=load_nii(fn_magn_in);
         I_M=abs(single(tmp.img));
+        if ARG.drop_last_vols>0
+            drop_M = I_M(:,:,:,end-ARG.drop_last_vols:end);
+            I_M = I_M(:,:,:,1:end-ARG.drop_last_vols);
+        end
     end
 
 
@@ -685,7 +713,12 @@ if isfield(ARG,'make_complex_nii')
     else
         IMG2_tmp= single(abs(IMG2_tmp)*2^gain_level);
     end
-
+    if ARG.drop_last_vols>0 % update the header before saving
+        info.ImageSize(4) = info.ImageSize(4)-ARG.drop_last_vols;
+    end
+    if ARG.drop_last_vols>0 % update the header before saving
+        info.ImageSize(4) = info.ImageSize(4)-ARG.drop_last_vols;
+    end
     niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'magn.nii'],info)
 
 
@@ -717,7 +750,9 @@ if isfield(ARG,'make_complex_nii')
             IMG2_tmp= single(abs(IMG2_tmp)*2^gain_level);
         end
     end
-
+    if ARG.drop_last_vols>0 % update the header before saving
+        info.ImageSize(4) = info.ImageSize(4)-ARG.drop_last_vols;
+    end
 
     niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'phase.nii'],info_phase)
 
@@ -736,7 +771,10 @@ else
     else
         IMG2= single(abs(IMG2)*2^gain_level);
     end
-    if ARG.use_generic_NII_read==0;
+    if ARG.use_generic_NII_read==0
+        if ARG.drop_last_vols>0
+            info.ImageSize(4) = info.ImageSize(4)-ARG.drop_last_vols;
+        end
         niftiwrite((IMG2),[ARG.DIROUT fn_out(1:end) '.nii'],info)
     else
         nii=make_nii(IMG2);
