@@ -60,7 +60,7 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %  4/15/21 swapped the uint16 and in16 for the phase
 %
 %  VERSION 4/22/2021
-
+%  Copyright  Board of Regents, University of Minnesota, 2022
 
 
 
@@ -181,14 +181,24 @@ if ARG.magnitude_only~=1
         
     end
     
-    phase_range=max(I_P(:));
-
+    phase_range=single(max(I_P(:)));
+    phase_range_min=single(min(I_P(:)));
 if ~exist('info_phase')    
     info_phase.Datatype=class(I_P);
     info.Datatype=class(I_M);
 end
 		% Here, we combine magnitude and phase data into complex form 
         fprintf('Phase should be -pi to pi...\n')
+	
+	% convert to single and then scale the phase
+I_P = single(I_P);
+            range_norm=phase_range-phase_range_min;
+            range_center=(phase_range+phase_range_min)/range_norm*1/2;
+            I_P = (single(I_P)./range_norm -range_center)*2*pi;
+            II=single(I_M)  .* exp(1i*I_P);       
+
+	
+	if 0
         if strmatch(info_phase.Datatype,'uint16')
             I_P = single(I_P)/phase_range*2*pi;
             II=single(I_M)  .* exp(1i*I_P);
@@ -203,6 +213,7 @@ end
             II=single(I_M)  .* exp(1i*I_P);                 
               
         end
+	end
 		
         fprintf('Phase data range is %.2f to %.2f\n', min(I_P(:)), max(I_P(:)))
 else
@@ -681,11 +692,21 @@ if isfield(ARG,'make_complex_nii')
     
     IMG2_tmp=angle(IMG2(:,:,:,1:end));
     if strmatch(info_phase.Datatype,'int16')
-        IMG2_tmp=IMG2_tmp+pi;
+    %    IMG2_tmp=IMG2_tmp+pi;
     end
     
+     IMG2_tmp=    (IMG2_tmp/(2*pi)+range_center)*range_norm;
+    
+     if strmatch(info_phase.Datatype,'uint16')      
+        IMG2_tmp= uint16(IMG2_tmp);
+     elseif strmatch(info_phase.Datatype,'int16')       
+        IMG2_tmp= int16(IMG2_tmp);
+     else
+        IMG2_tmp= single((IMG2_tmp));
+     end
     
     
+    if 0
     if strmatch(info_phase.Datatype,'uint16')
         IMG2_tmp=IMG2_tmp/(2*pi)*phase_range;
         IMG2_tmp= uint16(abs(IMG2_tmp)*2^gain_level);
@@ -695,7 +716,7 @@ if isfield(ARG,'make_complex_nii')
     else
         IMG2_tmp= single(abs(IMG2_tmp)*2^gain_level);
     end
-    
+    end
     
     
     niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'phase.nii'],info_phase)
