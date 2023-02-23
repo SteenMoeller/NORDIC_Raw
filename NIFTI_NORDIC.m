@@ -52,7 +52,6 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %   ARG.save_gfactor_map   val = [1 2].  1, saves the RELATIVE gfactor, 2 saves the
 %                                            gfactor and does not complete the NORDIC processing
 
-
 %  TODO
 %  Scaling relative to the width of the MP spectrum, if one wants to be
 %  conservative
