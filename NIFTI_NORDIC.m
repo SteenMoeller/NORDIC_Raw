@@ -639,7 +639,7 @@ disp('completing NORDIC ...')
 if isfield(ARG,'save_residual_matlab')
 if ARG.save_residual_matlab==1;
 Residual=KSP2-KSP_recon;
-  save([ARG.DIROUT 'RESIDUAL'  fn_out '.mat'   ],'Residual','-v7.3')
+  save(fullfile(ARG.DIROUT, ['RESIDUAL' fn_out '.mat']),'Residual','-v7.3')
 end
 end
 
@@ -738,7 +738,7 @@ else
     niftiwrite((IMG2),[ARG.DIROUT fn_out(1:end) '.nii'],info)
     else
      nii=make_nii(IMG2);   
-     save_nii(nii, [ARG.DIROUT fn_out(1:end) '.nii'])
+     save_nii(nii, fullfile(ARG.DIROUT, [fn_out(1:end) '.nii']))
     end
 end
 
@@ -746,7 +746,7 @@ end
 if isfield(ARG,'save_add_info')
     if  ARG.save_add_info==1
         disp('saving additional info')
-        save([ARG.DIROUT fn_out '.mat'   ],'ARG2','ARG','-v7.3')
+        save(fullfile(ARG.DIROUT, [fn_out '.mat']),'ARG2','ARG','-v7.3')
     end
 end
 
