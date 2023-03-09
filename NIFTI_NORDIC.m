@@ -52,12 +52,14 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %   ARG.save_gfactor_map   val = [1 2].  1, saves the RELATIVE gfactor, 2 saves the
 %                                            gfactor and does not complete the NORDIC processing
 %
+%   ARG.drop_last_vols      val = [0, N] 0, [default] - use all volumes loaded
+%                                        N - drop N (integer) volumes from the end of the timeseries. This can be used
+%                                            to remove and not use the noise volumes when combined with ARG.noise_volume_last = 0
 %
-
 %   ARG.save_residual_nii   Val [0 1]    1 - saves out the magnitude of the complex residuals, with g-factor correction 
 %                                            "undone", i.e. - the image is not flat, but reflects g-factor contribution
 %                                        0 - [default] - don't save this out.
-
+%
 %   ARG.save_residual_matlab   Val [0 1] 1 - saves out a mat file containing the complex residuals, note that these are
 %                                            'flat' - the g-factor effect is removed.
 %                                        0 - [default] - don't save this out.
