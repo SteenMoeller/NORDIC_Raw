@@ -162,15 +162,13 @@ ARG;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ARG.magnitude_only~=1
-
+    
     try
         info_phase=niftiinfo(fn_phase_in);
         info=niftiinfo(fn_magn_in);
     catch
         disp('The niftiinfo fails at reading the header') 
     end
-
-
     if ARG.use_generic_NII_read~=1
         I_M=abs(single(niftiread(fn_magn_in)));
         I_P=single(niftiread(fn_phase_in));
@@ -380,7 +378,7 @@ else
     else
         % KSP2=(KSP2(:,:,1:end,1:min(ARG.kernel_size_gfactor(3),end),1));
         KSP2=(KSP2(:,:,1:end,1:min(ARG.kernel_size_gfactor(4),end),1));
-
+        
     end
 
 end
@@ -478,10 +476,8 @@ if ( ARG.save_gfactor_map==2 )  | ( ARG.save_gfactor_map==1 )
     else
         g_IMG= single(abs(g_IMG)*2^gain_level);
     end
-    info_g = info; % Copy the header
-    info_g.ImageSize(4) = []; % no 4th dimension on gfactor map
-    info_g.PixelDimensions(4) = []; % again, no 4th dimension
-    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'], info_g) % Add header, so gfactor header matches original input
+    
+    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'])
     if ARG.save_gfactor_map==2
         return
     end
@@ -727,9 +723,9 @@ if isfield(ARG,'make_complex_nii')
     if strmatch(info_phase.Datatype,'int16')
         %    IMG2_tmp=IMG2_tmp+pi;
     end
-
+    
     IMG2_tmp=    (IMG2_tmp/(2*pi)+range_center)*range_norm;
-
+    
     if strmatch(info_phase.Datatype,'uint16')
         IMG2_tmp= uint16(IMG2_tmp);
     elseif strmatch(info_phase.Datatype,'int16')
@@ -737,8 +733,8 @@ if isfield(ARG,'make_complex_nii')
     else
         IMG2_tmp= single((IMG2_tmp));
     end
-
-
+    
+    
     if 0
         if strmatch(info_phase.Datatype,'uint16')
             IMG2_tmp=IMG2_tmp/(2*pi)*phase_range;
@@ -786,7 +782,7 @@ end
 if isfield(ARG,'save_add_info')
     if  ARG.save_add_info==1
         disp('saving additional info')
-        save([ARG.DIROUT fn_out '.mat'   ],'ARG2','ARG','-v7.3')
+        save(fullfile(ARG.DIROUT, [fn_out '.mat']),'ARG2','ARG','-v7.3')
     end
 end
 
@@ -954,8 +950,8 @@ for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP
         if isempty(soft_thrs)
             S(S<lambda2)=0;
         elseif soft_thrs==10  % USING MPPCA
-
-
+            
+            
             %  disp('test for zero entries')
             Test_mat=sum(tmp1,2);
             sum(Test_mat==0)
@@ -1078,7 +1074,7 @@ for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP
             t=1;
 
         elseif soft_thrs==10  % USING MPPCA
-
+            
             %  disp('test for zero entries')
             Test_mat=sum(tmp1,2);
             MM0=sum(Test_mat==0);
@@ -1163,13 +1159,13 @@ for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP
                     NOISE(:,round(w2/2)+(n2-1),round(w3/2)+(n3-1),:) +   sigmasq_2(t);; catch; end
 
         end
-
+        
         %            if MM0>1  & MM0<196
-
+        
         %   [  sigmasq_2(t) MM0] %  2
         %            end
-
-
+        
+        
     end
 end
 
