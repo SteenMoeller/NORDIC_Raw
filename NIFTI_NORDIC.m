@@ -169,7 +169,7 @@ if ~isfield(ARG,'drop_last_vols') %
 end
 
 if ~isfield(ARG,'save_residual_nii') %
-    ARG.save_residual_nii=0; %  % If there are pixels that are constant zero
+    ARG.save_residual_nii=0; %  default to not saving out abs(residuals)
 end
 
 
