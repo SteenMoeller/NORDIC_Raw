@@ -23,18 +23,18 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %   ARG.noise_volume_last   VAL  = num  specifiec volume from the end of the series
 %                                          0 default
 %
-%   ARG.factor_error        val  = num    >1 use higher noisefloor <1 use lower noisefloor 
-%                                          1 default 
+%   ARG.factor_error        val  = num    >1 use higher noisefloor <1 use lower noisefloor
+%                                          1 default
 %
-%   ARG.full_dynamic_range  val = [ 0 1]   0 keep the input scale, output maximizes range. 
+%   ARG.full_dynamic_range  val = [ 0 1]   0 keep the input scale, output maximizes range.
 %                                            Default 0
 %   ARG.temporal_phase      val = [1 2 3]  1 was default, 3 now in dMRI due tophase errors in some data
 %   ARG.NORDIC              val = [0 1]    1 Default
-%   ARG.MP                  val = [0 1 2]  1 NORDIC gfactor with MP estimation. 
+%   ARG.MP                  val = [0 1 2]  1 NORDIC gfactor with MP estimation.
 %                                          2 MP without gfactor correction
 %                                          0 default
 %   ARG.kernel_size_gfactor val = [val1 val2 val], defautl is [14 14 1]
-%   ARG.kernel_size_PCA     val = [val1 val2 val], default is val1=val2=val3; 
+%   ARG.kernel_size_PCA     val = [val1 val2 val], default is val1=val2=val3;
 %                                                  ratio of 11:1 between spatial and temproal voxels
 %   ARG.magnitude_only      val =[] or 1.  Using complex or magntiude only. Default is []
 %                                          Function still needs two inputs but will ignore the second
@@ -43,12 +43,12 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %                                         default is 0
 %   ARG.make_complex_nii    if the field exist, then the phase is being saved in a similar format as the input phase
 %
-%   ARG.phase_slice_average_for_kspace_centering     val = [0 1]   
+%   ARG.phase_slice_average_for_kspace_centering     val = [0 1]
 %                                         if val =0, not used, if val=1 the series average pr slice is first removed
 %                                         default is now 0
 %   ARG.phase_filter_width  val = [1... 10]  Specifiec the width of the smoothing filter for the phase
 %                                         default is now 3
-%   
+%
 %   ARG.save_gfactor_map   val = [1 2].  1, saves the RELATIVE gfactor, 2 saves the
 %                                            gfactor and does not complete the NORDIC processing
 
@@ -56,7 +56,7 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %  TODO
 %  Scaling relative to the width of the MP spectrum, if one wants to be
 %  conservative
-%  
+%
 %  4/15/21 swapped the uint16 and in16 for the phase
 %
 %  VERSION 4/22/2021
@@ -127,7 +127,7 @@ if ~isfield(ARG,'kernel_size_PCA')
 end
 
 if ~isfield(ARG,'phase_slice_average_for_kspace_centering');
-ARG.phase_slice_average_for_kspace_centering=0;
+    ARG.phase_slice_average_for_kspace_centering=0;
 end
 
 if ~isfield(ARG,'magnitude_only') % if legacy data
@@ -144,7 +144,7 @@ end
 
 if isfield(ARG,'use_generic_NII_read') % save out a map of a relative gfactor
     if ARG.use_generic_NII_read==1
-    path(path,'/home/range6-raid1/moeller/matlab/ADD/NIFTI/');
+        path(path,'/home/range6-raid1/moeller/matlab/ADD/NIFTI/');
     end
 else
     ARG.use_generic_NII_read=0;
@@ -159,10 +159,10 @@ ARG;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if ARG.magnitude_only~=1
-
+    
     try
-    info_phase=niftiinfo(fn_phase_in);
-    info=niftiinfo(fn_magn_in);
+        info_phase=niftiinfo(fn_phase_in);
+        info=niftiinfo(fn_magn_in);
     catch;  disp('The niftiinfo fails at reading the header')  ;end
     
     
@@ -171,34 +171,34 @@ if ARG.magnitude_only~=1
         I_P=single(niftiread(fn_phase_in));
     else
         try
-        tmp=load_nii(fn_magn_in);
-        I_M=abs(single(tmp.img));
-        tmp=load_nii(fn_phase_in);
-        I_P=single(tmp.img);
+            tmp=load_nii(fn_magn_in);
+            I_M=abs(single(tmp.img));
+            tmp=load_nii(fn_phase_in);
+            I_P=single(tmp.img);
         catch
-           disp('Missing nfiti tool. Serach mathworks for load_nii  fileexchange 8797') 
+            disp('Missing nfiti tool. Serach mathworks for load_nii  fileexchange 8797')
         end
         
     end
     
     phase_range=single(max(I_P(:)));
     phase_range_min=single(min(I_P(:)));
-if ~exist('info_phase')    
-    info_phase.Datatype=class(I_P);
-    info.Datatype=class(I_M);
-end
-		% Here, we combine magnitude and phase data into complex form 
-        fprintf('Phase should be -pi to pi...\n')
-	
-	% convert to single and then scale the phase
-I_P = single(I_P);
-            range_norm=phase_range-phase_range_min;
-            range_center=(phase_range+phase_range_min)/range_norm*1/2;
-            I_P = (single(I_P)./range_norm -range_center)*2*pi;
-            II=single(I_M)  .* exp(1i*I_P);       
-
-	
-	if 0
+    if ~exist('info_phase')
+        info_phase.Datatype=class(I_P);
+        info.Datatype=class(I_M);
+    end
+    % Here, we combine magnitude and phase data into complex form
+    fprintf('Phase should be -pi to pi...\n')
+    
+    % convert to single and then scale the phase
+    I_P = single(I_P);
+    range_norm=phase_range-phase_range_min;
+    range_center=(phase_range+phase_range_min)/range_norm*1/2;
+    I_P = (single(I_P)./range_norm -range_center)*2*pi;
+    II=single(I_M)  .* exp(1i*I_P);
+    
+    
+    if 0
         if strmatch(info_phase.Datatype,'uint16')
             I_P = single(I_P)/phase_range*2*pi;
             II=single(I_M)  .* exp(1i*I_P);
@@ -210,18 +210,18 @@ I_P = single(I_P);
             range_norm=phase_range-phase_range_min;
             range_center=(phase_range+phase_range_min)/range_norm*1/2;
             I_P = (single(I_P)./range_norm -range_center)*2*pi;
-            II=single(I_M)  .* exp(1i*I_P);                 
-              
+            II=single(I_M)  .* exp(1i*I_P);
+            
         end
-	end
-		
-        fprintf('Phase data range is %.2f to %.2f\n', min(I_P(:)), max(I_P(:)))
+    end
+    
+    fprintf('Phase data range is %.2f to %.2f\n', min(I_P(:)), max(I_P(:)))
 else
     
-     try
-     info=niftiinfo(fn_magn_in);
+    try
+        info=niftiinfo(fn_magn_in);
     catch;  disp('The niftiinfo fails at reading the header')  ;end
- 
+    
     
     if ARG.use_generic_NII_read~=1
         I_M=abs(single(niftiread(fn_magn_in)));
@@ -231,11 +231,11 @@ else
     end
     
     
-if ~exist('info_phase')    
-     info.Datatype=class(I_M);
+    if ~exist('info_phase')
+        info.Datatype=class(I_M);
+    end
+    
 end
-
-end 
 
 
 
@@ -347,8 +347,8 @@ else
     if (isempty(ARG.kernel_size_gfactor) | size(ARG.kernel_size_gfactor,2)<3)
         KSP2=(KSP2(:,:,1:end,1:min(90,end),1));  % should be at least 30 volumes
     else
-       % KSP2=(KSP2(:,:,1:end,1:min(ARG.kernel_size_gfactor(3),end),1));
-        KSP2=(KSP2(:,:,1:end,1:min(ARG.kernel_size_gfactor(4),end),1));        
+        % KSP2=(KSP2(:,:,1:end,1:min(ARG.kernel_size_gfactor(3),end),1));
+        KSP2=(KSP2(:,:,1:end,1:min(ARG.kernel_size_gfactor(4),end),1));
         
     end
     
@@ -447,12 +447,10 @@ if ( ARG.save_gfactor_map==2 )  | ( ARG.save_gfactor_map==1 )
     else
         g_IMG= single(abs(g_IMG)*2^gain_level);
     end
-    info_g = info; % Copy the header
-    info_g.ImageSize(4) = []; % no 4th dimension on gfactor map
-    info_g.PixelDimensions(4) = []; % again, no 4th dimension
-    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'], info_g) % Add header, so gfactor header matches original input
+    
+    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'])
     if ARG.save_gfactor_map==2
-     return
+        return
     end
     
 end
@@ -562,9 +560,9 @@ else
 end
 
 
-if matdim(3) <= ARG.kernel_size(3)  % Number of slices is less than cubic kernel    
+if matdim(3) <= ARG.kernel_size(3)  % Number of slices is less than cubic kernel
     ARG.kernel_size   = repmat([ round((size(KSP2,4)*11/matdim(3) )^(1/2))   ],1,2);
-    ARG.kernel_size(3)= matdim(3);    
+    ARG.kernel_size(3)= matdim(3);
 end
 
 
@@ -585,9 +583,9 @@ for ntmp=1:10
 end
 
 if ARG.magnitude_only~=1  % 4/29/2021
-ARG.NVR_threshold= ARG.NVR_threshold/10*sqrt(2)* ARG.measured_noise*ARG.factor_error;  % sqrt(2) due to complex  1.20 due to understimate of g-factor
+    ARG.NVR_threshold= ARG.NVR_threshold/10*sqrt(2)* ARG.measured_noise*ARG.factor_error;  % sqrt(2) due to complex  1.20 due to understimate of g-factor
 else
-ARG.NVR_threshold= ARG.NVR_threshold/10*ARG.measured_noise*ARG.factor_error;  % sqrt(2) due to complex  1.20 due to understimate of g-factor    
+    ARG.NVR_threshold= ARG.NVR_threshold/10*ARG.measured_noise*ARG.factor_error;  % sqrt(2) due to complex  1.20 due to understimate of g-factor
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -639,10 +637,10 @@ disp('completing NORDIC ...')
 
 
 if isfield(ARG,'save_residual_matlab')
-if ARG.save_residual_matlab==1;
-Residual=KSP2-KSP_recon;
-  save([ARG.DIROUT 'RESIDUAL'  fn_out '.mat'   ],'Residual','-v7.3')
-end
+    if ARG.save_residual_matlab==1;
+        Residual=KSP2-KSP_recon;
+        save(fullfile(ARG.DIROUT, ['RESIDUAL' fn_out '.mat']),'Residual','-v7.3')
+    end
 end
 
 
@@ -692,30 +690,30 @@ if isfield(ARG,'make_complex_nii')
     
     IMG2_tmp=angle(IMG2(:,:,:,1:end));
     if strmatch(info_phase.Datatype,'int16')
-    %    IMG2_tmp=IMG2_tmp+pi;
+        %    IMG2_tmp=IMG2_tmp+pi;
     end
     
-     IMG2_tmp=    (IMG2_tmp/(2*pi)+range_center)*range_norm;
+    IMG2_tmp=    (IMG2_tmp/(2*pi)+range_center)*range_norm;
     
-     if strmatch(info_phase.Datatype,'uint16')      
+    if strmatch(info_phase.Datatype,'uint16')
         IMG2_tmp= uint16(IMG2_tmp);
-     elseif strmatch(info_phase.Datatype,'int16')       
+    elseif strmatch(info_phase.Datatype,'int16')
         IMG2_tmp= int16(IMG2_tmp);
-     else
+    else
         IMG2_tmp= single((IMG2_tmp));
-     end
+    end
     
     
     if 0
-    if strmatch(info_phase.Datatype,'uint16')
-        IMG2_tmp=IMG2_tmp/(2*pi)*phase_range;
-        IMG2_tmp= uint16(abs(IMG2_tmp)*2^gain_level);
-    elseif strmatch(info_phase.Datatype,'int16')
-        IMG2_tmp=IMG2_tmp/(2*pi)*phase_range;
-        IMG2_tmp= int16((IMG2_tmp)*2^gain_level);
-    else
-        IMG2_tmp= single(abs(IMG2_tmp)*2^gain_level);
-    end
+        if strmatch(info_phase.Datatype,'uint16')
+            IMG2_tmp=IMG2_tmp/(2*pi)*phase_range;
+            IMG2_tmp= uint16(abs(IMG2_tmp)*2^gain_level);
+        elseif strmatch(info_phase.Datatype,'int16')
+            IMG2_tmp=IMG2_tmp/(2*pi)*phase_range;
+            IMG2_tmp= int16((IMG2_tmp)*2^gain_level);
+        else
+            IMG2_tmp= single(abs(IMG2_tmp)*2^gain_level);
+        end
     end
     
     
@@ -737,10 +735,10 @@ else
         IMG2= single(abs(IMG2)*2^gain_level);
     end
     if ARG.use_generic_NII_read==0;
-    niftiwrite((IMG2),[ARG.DIROUT fn_out(1:end) '.nii'],info)
+        niftiwrite((IMG2),[ARG.DIROUT fn_out(1:end) '.nii'],info)
     else
-     nii=make_nii(IMG2);   
-     save_nii(nii, [ARG.DIROUT fn_out(1:end) '.nii'])
+        nii=make_nii(IMG2);
+        save_nii(nii, fullfile(ARG.DIROUT, [fn_out(1:end) '.nii']))
     end
 end
 
@@ -748,7 +746,7 @@ end
 if isfield(ARG,'save_add_info')
     if  ARG.save_add_info==1
         disp('saving additional info')
-        save([ARG.DIROUT fn_out '.mat'   ],'ARG2','ARG','-v7.3')
+        save(fullfile(ARG.DIROUT, [fn_out '.mat']),'ARG2','ARG','-v7.3')
     end
 end
 
@@ -915,7 +913,7 @@ for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP
         elseif soft_thrs==10  % USING MPPCA
             
             
-          %  disp('test for zero entries')
+            %  disp('test for zero entries')
             Test_mat=sum(tmp1,2);
             sum(Test_mat==0)
             
@@ -1038,13 +1036,13 @@ for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP
             
         elseif soft_thrs==10  % USING MPPCA
             
-         %  disp('test for zero entries')
+            %  disp('test for zero entries')
             Test_mat=sum(tmp1,2);
             MM0=sum(Test_mat==0);
             
             
             if MM0>1  & MM0<100
-             %  2 
+                %  2
             end
             
             
@@ -1052,24 +1050,24 @@ for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP
             MM=size(tmp1,1)-MM0;  % Correction for some zero entries
             
             if MM>0
-            NNN=size(tmp1,2);
-            R = min(MM, NNN);
-            scaling = (max(MM, NNN) - (0:R-centering-1)) / NNN;
-            scaling = scaling(:);
-            vals=S;
-            vals = (vals).^2 / NNN;
-            % First estimation of Sigma^2;  Eq 1 from ISMRM presentation
-            csum = cumsum(vals(R-centering:-1:1)); cmean = csum(R-centering:-1:1)./(R-centering:-1:1)'; sigmasq_1 = cmean./scaling;
-            % Second estimation of Sigma^2; Eq 2 from ISMRM presentation
-            gamma = (MM - (0:R-centering-1)) / NNN;
-            rangeMP = 4*sqrt(gamma(:));
-            rangeData = vals(1:R-centering) - vals(R-centering);
-            sigmasq_2 = rangeData./rangeMP;
-            t = find(sigmasq_2 < sigmasq_1, 1);
-            % NOISE(1:size(KSP2a,1),[1:w2]+(n2-1),[1:w3]+(n3-1),1) = sigmasq_2(t);
-            idx=size(S(t:end),1)  ;
-            energy_scrub=sqrt(sum(S.^1)).\sqrt(sum(S(t:end).^1));
-            S(t:end)=0;
+                NNN=size(tmp1,2);
+                R = min(MM, NNN);
+                scaling = (max(MM, NNN) - (0:R-centering-1)) / NNN;
+                scaling = scaling(:);
+                vals=S;
+                vals = (vals).^2 / NNN;
+                % First estimation of Sigma^2;  Eq 1 from ISMRM presentation
+                csum = cumsum(vals(R-centering:-1:1)); cmean = csum(R-centering:-1:1)./(R-centering:-1:1)'; sigmasq_1 = cmean./scaling;
+                % Second estimation of Sigma^2; Eq 2 from ISMRM presentation
+                gamma = (MM - (0:R-centering-1)) / NNN;
+                rangeMP = 4*sqrt(gamma(:));
+                rangeData = vals(1:R-centering) - vals(R-centering);
+                sigmasq_2 = rangeData./rangeMP;
+                t = find(sigmasq_2 < sigmasq_1, 1);
+                % NOISE(1:size(KSP2a,1),[1:w2]+(n2-1),[1:w3]+(n3-1),1) = sigmasq_2(t);
+                idx=size(S(t:end),1)  ;
+                energy_scrub=sqrt(sum(S.^1)).\sqrt(sum(S(t:end).^1));
+                S(t:end)=0;
             else  % all zero entries
                 t=1;
                 energy_scrub=0;
@@ -1123,10 +1121,10 @@ for n2=[1: max(1,floor(w2/ARG.patch_average_sub)):size(KSP2a,2)*1-w2+1  size(KSP
             
         end
         
-%            if MM0>1  & MM0<196
-            
-            %   [  sigmasq_2(t) MM0] %  2 
-%            end
+        %            if MM0>1  & MM0<196
+        
+        %   [  sigmasq_2(t) MM0] %  2
+        %            end
         
         
     end

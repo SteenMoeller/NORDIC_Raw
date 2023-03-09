@@ -4,7 +4,8 @@
  
 
 # NORDIC_Raw
-Matlab code for performing image reconstruction in MRI and performing the NORDIC denoising
+Matlab code for performing image reconstruction in MRI and performing the NORDIC denoising.
+Needs matlab version 2017b or newer
 
 
 # Overview
