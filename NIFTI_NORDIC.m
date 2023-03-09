@@ -51,7 +51,16 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %
 %   ARG.save_gfactor_map   val = [1 2].  1, saves the RELATIVE gfactor, 2 saves the
 %                                            gfactor and does not complete the NORDIC processing
+%
+%
 
+%   ARG.save_residual_nii   Val [0 1]    1 - saves out the magnitude of the complex residuals, with g-factor correction 
+%                                            "undone", i.e. - the image is not flat, but reflects g-factor contribution
+%                                        0 - [default] - don't save this out.
+
+%   ARG.save_residual_matlab   Val [0 1] 1 - saves out a mat file containing the complex residuals, note that these are
+%                                            'flat' - the g-factor effect is removed.
+%                                        0 - [default] - don't save this out.
 %  TODO
 %  Scaling relative to the width of the MP spectrum, if one wants to be
 %  conservative
@@ -156,6 +165,11 @@ end
 if ~isfield(ARG,'drop_last_vols') %
     ARG.drop_last_vols=0; % Default to removing no volumes. 
 end
+
+if ~isfield(ARG,'save_residual_nii') %
+    ARG.save_residual_nii=0; %  % If there are pixels that are constant zero
+end
+
 
 
 ARG;
@@ -669,6 +683,28 @@ if isfield(ARG,'save_residual_matlab')
     if ARG.save_residual_matlab==1
         Residual=KSP2-KSP_recon;
         save([ARG.DIROUT 'RESIDUAL'  fn_out '.mat'   ],'Residual','-v7.3')
+    end
+end
+
+% Handle saving out a residual nii file if requested, just the magnitude of the compelx diff. 
+if isfield(ARG,'save_residual_nii')
+    if ARG.save_residual_nii==1
+        fprintf('Correcting g-factor, converting complex residual to magnitude (abs()) and saving nii...\n')
+        Residual=KSP2-KSP_recon;
+        % Correct for g-factor and make magnitude only
+        residNii = zeros(size(Residual));
+        for n= 1:size(Residual,4)
+            residNii(:,:,:,n) = abs(Residual(:,:,:,n) .* gfactor);
+        end
+        % Deal with any potetial dataype issues...
+        residinfo = info; 
+        residinfo.Datatype = 'single';
+        residinfo.BitsPerPixel = 32;
+        if isfield(ARG,'drop_last_vols')
+            residinfo.ImageSize(4) = residinfo.ImageSize(4)-ARG.drop_last_vols;
+        end
+        niftiwrite((residNii),[ARG.DIROUT 'resid_' fn_out '.nii'], residinfo)
+       
     end
 end
 
