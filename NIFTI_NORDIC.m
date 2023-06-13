@@ -51,6 +51,9 @@ function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
 %
 %   ARG.save_gfactor_map   val = [1 2].  1, saves the RELATIVE gfactor, 2 saves the
 %                                            gfactor and does not complete the NORDIC processing
+%   ARG.write_gzipped_niftis  val = [0, 1]  Output files are written to
+%                                           disk ask compressed *.nii.gz NIfTIs.
+%                                           default is 0 (= false).
 
 
 %  TODO
@@ -152,6 +155,10 @@ end
 
 if ~isfield(ARG,'data_has_zero_elements') %
     ARG.data_has_zero_elements=0; %  % If there are pixels that are constant zero
+end
+
+if ~isfield(ARG, 'write_gzipped_niftis')
+    ARG.write_gzipped_niftis = 0;
 end
 
 
@@ -448,7 +455,8 @@ if ( ARG.save_gfactor_map==2 )  | ( ARG.save_gfactor_map==1 )
         g_IMG= single(abs(g_IMG)*2^gain_level);
     end
     
-    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'])
+    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'], ...
+        'Compressed', ARG.write_gzipped_niftis)
     if ARG.save_gfactor_map==2
         return
     end
@@ -684,7 +692,8 @@ if isfield(ARG,'make_complex_nii')
         IMG2_tmp= single(abs(IMG2_tmp)*2^gain_level);
     end
     
-    niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'magn.nii'],info)
+    niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'magn.nii'],info, ...
+        'Compressed', ARG.write_gzipped_niftis)
     
     
     
@@ -717,7 +726,8 @@ if isfield(ARG,'make_complex_nii')
     end
     
     
-    niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'phase.nii'],info_phase)
+    niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'phase.nii'],info_phase, ...
+        'Compressed', ARG.write_gzipped_niftis)
     
 else
     IMG2=abs(IMG2(:,:,:,1:end)); % remove g-factor and noise for DUAL 1
@@ -735,7 +745,8 @@ else
         IMG2= single(abs(IMG2)*2^gain_level);
     end
     if ARG.use_generic_NII_read==0;
-        niftiwrite((IMG2),[ARG.DIROUT fn_out(1:end) '.nii'],info)
+        niftiwrite((IMG2),[ARG.DIROUT fn_out(1:end) '.nii'],info, ...
+            'Compressed', ARG.write_gzipped_niftis)
     else
         nii=make_nii(IMG2);
         save_nii(nii, fullfile(ARG.DIROUT, [fn_out(1:end) '.nii']))
