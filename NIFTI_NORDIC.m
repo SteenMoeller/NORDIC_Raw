@@ -492,8 +492,16 @@ if ( ARG.save_gfactor_map==2 )  | ( ARG.save_gfactor_map==1 )
     else
         g_IMG= single(abs(g_IMG)*2^gain_level);
     end
+
+    % copy data header, but change a few parameters
+    % This will ensure that the map is lined up with the input data.
+    gfactorinfo = info; 
+    gfactorinfo.Datatype = 'single';
+    gfactorinfo.BitsPerPixel = 32;
+        
+    gfactorinfo.ImageSize(4) = 1;
     
-    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'])
+    niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'], gfactorinfo)
     if ARG.save_gfactor_map==2
         return
     end
