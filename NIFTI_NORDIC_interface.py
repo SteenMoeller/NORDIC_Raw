@@ -1,5 +1,4 @@
 # Author: Monika Dörig, 2023
-# Questions & Inputs to: monika.doerig@balgrist.ch
 
 
 
