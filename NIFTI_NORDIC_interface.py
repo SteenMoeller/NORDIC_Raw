@@ -45,6 +45,7 @@ class NiftiNordic(BaseInterface):
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
+        # Save it in directory of Nipype Node
         cwd = os.getcwd()
         
         # Check if the output files exist (depending on the arguments) and assign outputs 
