@@ -1,4 +1,16 @@
-function  NIFTI_NORDIC(fn_magn_in,fn_phase_in,fn_out,ARG)
+function NIFTI_NORDIC_nipype(fn_magn_in,fn_phase_in,fn_out,ARG_path)
+
+% Additional code for integration with the Nipype interface for NIFTI_NORDIC 
+% This customization is tailored to the specific requirements of it and may
+% need adaptations when the Nipype interface is modified
+ 
+if exist('ARG_path') 
+    arg_struct = load(ARG_path);
+    ARG = arg_struct.ARG;
+    ARG = structfun(@double, ARG, 'uniformoutput', 0); %fields need to be casted to double (from python struct with datatype int64) 
+    disp(ARG)
+end
+
 % fMRI
 %  fn_magn_in='name.nii.gz';
 %  fn_phase_in='name2.nii.gz';
