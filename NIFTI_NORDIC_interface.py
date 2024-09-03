@@ -1,6 +1,4 @@
-# Author: Monika Dörig, 2023
-
-
+# Author: Monika Dörig, 2024
 
 
 from nipype.interfaces.base import (CommandLine, traits, TraitedSpec,
@@ -28,39 +26,49 @@ class NiftiNordicOutputSpec(TraitedSpec):
 class NiftiNordic(BaseInterface):
     input_spec = NiftiNordicInputSpec
     output_spec = NiftiNordicOutputSpec
+
+    # To handle the basename of .nii and .nii.gz files correctly
+    def get_base_filename(self, file_path):
+        base_name = os.path.basename(file_path)
+        base_name, ext = os.path.splitext(base_name)
+        if ext == '.gz':
+            base_name, _ = os.path.splitext(base_name)
+        return base_name
     
     def _run_interface(self, runtime):
-        # Third argument for NIFTI_NORDIC_nipype.m may need adaptation depending on the the suffix of your file: here it is defined for a .nii.gz file --> [0:-7]
-        mlab_cmd = f"matlab -r \"addpath('{self.inputs.additional_path}'); try; NIFTI_NORDIC_nipype ('{self.inputs.fn_magn_in}', '{self.inputs.fn_phase_in}', '{os.path.basename(self.inputs.fn_magn_in)[0:-7]}{self.inputs.fn_out}','{self.inputs.ARG}' ); catch ME; disp(getReport(ME)); end; quit;\""
+        self.base_name = self.get_base_filename(self.inputs.fn_magn_in)
+
+        mlab_cmd = f"matlab -r \"addpath('{self.inputs.additional_path}'); try; NIFTI_NORDIC_nipype ('{self.inputs.fn_magn_in}', '{self.inputs.fn_phase_in}', '{self.base_name}{self.inputs.fn_out}','{self.inputs.ARG}' ); catch ME; disp(getReport(ME)); end; quit;\""
         mlab = CommandLine(command=mlab_cmd, terminal_output='stream', resource_monitor=True)
         result = mlab.run()  
         return result.runtime
 
     def _list_outputs(self):
         outputs = self.output_spec().get()
+        cwd = os.getcwd()
         
         # Check if the output files exist (depending on the arguments) and assign outputs 
-        output = os.path.abspath(f"{os.getcwd()}/{os.path.basename(self.inputs.fn_magn_in)[0:-7]}{self.inputs.fn_out}.nii")
+        output = os.path.abspath(f"{cwd}/{self.base_name}{self.inputs.fn_out}.nii")
         if os.path.exists(output):
             outputs['output_file'] = output
             
-        info = os.path.abspath(f"{os.getcwd()}/{os.path.basename(self.inputs.fn_magn_in)[0:-7]}{self.inputs.fn_out}_info.mat")
+        info = os.path.abspath(f"{cwd}/{self.base_name}{self.inputs.fn_out}.mat")
         if os.path.exists(info):
             outputs['add_info_file'] = info
             
-        complex_phase = os.path.abspath(f"{os.getcwd()}/{os.path.basename(self.inputs.fn_magn_in)[0:-7]}{self.inputs.fn_out}_phase.nii")
+        complex_phase = os.path.abspath(f"{cwd}/{self.base_name}{self.inputs.fn_out}_phase.nii")
         if os.path.exists(complex_phase):
             outputs['complex_phase_file'] = complex_phase
             
-        complex_magn = os.path.abspath(f"{os.getcwd()}/{os.path.basename(self.inputs.fn_magn_in)[0:-7]}{self.inputs.fn_out}_magn.nii")
+        complex_magn = os.path.abspath(f"{cwd}/{self.base_name}{self.inputs.fn_out}_magn.nii")
         if os.path.exists(complex_magn):
             outputs['complex_magn_file'] = complex_magn
             
-        gfactor = os.path.abspath(f"{os.getcwd()}/gfactor_{os.path.basename(self.inputs.fn_magn_in)[0:-7]}{self.inputs.fn_out}.nii")
+        gfactor = os.path.abspath(f"{cwd}/gfactor_{self.base_name}{self.inputs.fn_out}.nii")
         if os.path.exists(gfactor):
             outputs['gfactor_map_file'] = gfactor     
             
-        residuals = os.path.abspath(f"{os.getcwd()}/RESIDUAL{os.path.basename(self.inputs.fn_magn_in)[0:-7]}{self.inputs.fn_out}.mat")
+        residuals = os.path.abspath(f"{cwd}/RESIDUAL{self.base_name}{self.inputs.fn_out}.mat")
         if os.path.exists(residuals):
             outputs['residual_mat_file'] = residuals
             
