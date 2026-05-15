@@ -457,6 +457,9 @@ if ( ARG.save_gfactor_map==2 )  | ( ARG.save_gfactor_map==1 )
     
     niftiwrite((g_IMG),[ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'], ...
         'Compressed', ARG.write_gzipped_niftis)
+    restore_qform_from_source( ...
+        [ARG.DIROUT 'gfactor_' fn_out(1:end) '.nii'], ...
+        info, ARG.write_gzipped_niftis);
     if ARG.save_gfactor_map==2
         return
     end
@@ -694,9 +697,12 @@ if isfield(ARG,'make_complex_nii')
     
     niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'magn.nii'],info, ...
         'Compressed', ARG.write_gzipped_niftis)
-    
-    
-    
+    restore_qform_from_source( ...
+        [ARG.DIROUT fn_out 'magn.nii'], ...
+        info, ARG.write_gzipped_niftis);
+
+
+
     IMG2_tmp=angle(IMG2(:,:,:,1:end));
     if strmatch(info_phase.Datatype,'int16')
         %    IMG2_tmp=IMG2_tmp+pi;
@@ -728,7 +734,10 @@ if isfield(ARG,'make_complex_nii')
     
     niftiwrite((IMG2_tmp),[ARG.DIROUT fn_out 'phase.nii'],info_phase, ...
         'Compressed', ARG.write_gzipped_niftis)
-    
+    restore_qform_from_source( ...
+        [ARG.DIROUT fn_out 'phase.nii'], ...
+        info_phase, ARG.write_gzipped_niftis);
+
 else
     IMG2=abs(IMG2(:,:,:,1:end)); % remove g-factor and noise for DUAL 1
     IMG2(isnan(IMG2))=0;
@@ -749,6 +758,9 @@ else
     if ARG.use_generic_NII_read==0;
         niftiwrite((IMG2),[ARG.DIROUT fn_out(1:end) '.nii'],info, ...
             'Compressed', ARG.write_gzipped_niftis)
+        restore_qform_from_source( ...
+            [ARG.DIROUT fn_out(1:end) '.nii'], ...
+            info, ARG.write_gzipped_niftis);
     else
         nii=make_nii(IMG2);
         save_nii(nii, fullfile(ARG.DIROUT, [fn_out(1:end) '.nii']))
@@ -764,6 +776,64 @@ if isfield(ARG,'save_add_info')
 end
 
 
+
+return
+
+
+function restore_qform_from_source(target_file, source_info, is_compressed)
+%RESTORE_QFORM_FROM_SOURCE  Patch qform fields on a niftiwrite output.
+%
+%   MATLAB's niftiwrite populates sform_code from info.Transform.T but
+%   leaves qform_code = 0, silently breaking downstream AFNI tools that
+%   prefer qform over sform. This helper rewrites the qform_code and
+%   qform parameters at the documented NIfTI-1 header byte offsets so
+%   the output's qform matches SOURCE_INFO. The voxel data block is not
+%   touched.
+%
+%   NIfTI-1 header offsets (https://nifti.nimh.nih.gov/nifti-1/):
+%     pixdim[0]    offset  76    float32   (qfac)
+%     qform_code   offset 252    int16
+%     quatern_b    offset 256    float32
+%     quatern_c    offset 260    float32
+%     quatern_d    offset 264    float32
+%     qoffset_x    offset 268    float32
+%     qoffset_y    offset 272    float32
+%     qoffset_z    offset 276    float32
+
+if nargin < 3
+    is_compressed = false;
+end
+
+if is_compressed
+    gz_path = [target_file '.gz'];
+    if ~exist(gz_path, 'file'); return; end
+    gunzip(gz_path);
+    delete(gz_path);
+end
+
+if ~exist(target_file, 'file'); return; end
+
+fid = fopen(target_file, 'r+', 'l');
+if fid == -1; return; end
+
+fseek(fid, 76, 'bof');
+fwrite(fid, single(source_info.raw.pixdim(1)), 'single');
+fseek(fid, 252, 'bof');
+fwrite(fid, int16(source_info.raw.qform_code), 'int16');
+fseek(fid, 256, 'bof');
+fwrite(fid, single(source_info.raw.quatern_b), 'single');
+fwrite(fid, single(source_info.raw.quatern_c), 'single');
+fwrite(fid, single(source_info.raw.quatern_d), 'single');
+fwrite(fid, single(source_info.raw.qoffset_x), 'single');
+fwrite(fid, single(source_info.raw.qoffset_y), 'single');
+fwrite(fid, single(source_info.raw.qoffset_z), 'single');
+
+fclose(fid);
+
+if is_compressed
+    gzip(target_file);
+    delete(target_file);
+end
 
 return
 
