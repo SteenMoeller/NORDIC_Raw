@@ -17,6 +17,7 @@ uses the MPPCA method of Veraart et al. 2016
 NIFTI_NORDIC has additional paramters that can be adjusted, for learning or understanding the influence of the different algortimic choices.
 For NIFTI_NORDIC, there are two different options, depending on whether dMRI or fMRI is used. 
 This difference appears related to the hwo the phase is retained in the DICOM of the vendor software. A corresponding distinction is not neccesary for the NORDIC processing.
+A cleaner version have been uploaded as NIFTI_NORDIC2, and follows the same syntax. A python version is available at github.com/JimJam07
 
 This version of NIFTI_NORDIC has been made possible through the testing and evaulation of many people, including
 
